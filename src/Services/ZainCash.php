@@ -32,12 +32,13 @@ class ZainCash
         if (!isset($parsedResponse->id)) {
             return ["error" => 'true', "msg" => $parsedResponse->err->msg];
         }
-        return [
+        $payload =  [
             'error' => 'false',
             'payload' => $parsedResponse,
             'gotoUrl' => $this->createUrl($parsedResponse->id),
             'transactionStatus' => $parsedResponse->status
         ];
+        return json_decode (json_encode ($payload), FALSE);
     }
 
     private function validate()
