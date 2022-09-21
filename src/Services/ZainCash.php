@@ -7,9 +7,10 @@ use Firebase\JWT\Key;
 
 class ZainCash
 {
-    public $amount;
-    public $serviceType;
-    public $orderId;
+    public $amount; //Please note that it MUST BE MORE THAN 1000 IQD
+    public $serviceType; //Type of service you provide, like 'Books', 'ecommerce cart', 'Hosting services', ...
+    public $orderId; //Order id, you can use it to help you in tagging transactions with your website IDs, if you have no order numbers in your website, leave it 1
+    //Variable Type is STRING, MAX: 512 chars
 
     public function __construct()
     {
@@ -20,8 +21,6 @@ class ZainCash
 
     public function request($amount, $service_type, $order_id)
     {
-
-
         $this->amount = $amount;
         $this->serviceType = $service_type;
         $this->orderId = $order_id;
@@ -81,6 +80,7 @@ class ZainCash
         ];
     }
 
+    //Encoding Token
     private function sign($data)
     {
         return JWT::encode(
@@ -90,6 +90,7 @@ class ZainCash
         );
     }
 
+    //Preparing data to ZainCash API
     private function preparePostToZainCash($token)
     {
         $data_to_post = array();
@@ -106,6 +107,7 @@ class ZainCash
         return stream_context_create($options);
     }
 
+    //POSTing data to ZainCash API
     private function sendRequest($context)
     {
         try {
@@ -118,7 +120,6 @@ class ZainCash
 
     private function parseResponse($response)
     {
-        //Parsing response
         return json_decode($response);
     }
 
@@ -130,6 +131,7 @@ class ZainCash
 
     public function checkToken($token)
     {
+        //to check for status of the transaction, use $result->status
         $result = JWT::decode($token, new Key(config('zaincash.secret'), 'HS256'));
         return $this->prepareOutput($result);
     }

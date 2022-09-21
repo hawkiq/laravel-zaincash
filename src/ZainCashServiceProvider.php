@@ -32,9 +32,4 @@ class ZainCashServiceProvider extends ServiceProvider
             __DIR__ . '/config/zaincash.php' =>  config_path('zaincash.php'),
         ], 'zaincash');
     }
-
-    public function getApiUrlService()
-    {
-        return $this->app['config']->get('zaincash.live', false);
-    }
 }
