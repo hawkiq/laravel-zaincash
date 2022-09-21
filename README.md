@@ -14,9 +14,8 @@ php artisan vendor:publish --tag="zaincash"
 
 all config variables are well described
 
-```
+```php
 
-<?php
 return [
     //The mobile phone number for your wallet, example format: 9647835077893. given by Zain Cash
     'msisdn' => '9647835077893', // This is for test only its working for test enviroment
@@ -44,7 +43,7 @@ return [
 
 in your controller init the class
 
-```
+```php
 use Hawkiq\LaravelZaincash\Services\ZainCash;
 
 $zaincash = new ZainCash();
@@ -66,7 +65,7 @@ $payload =  $zaincash->request($amount,$service_type,$order_id);
 
 now we check if there are no errors in our request then we redirect to Zain Cash Website
 
-```
+```php
 return $payload->error != 'true' ? redirect()->away($payload->gotoUrl) : $payload->msg;
 ```
 
@@ -74,7 +73,7 @@ which `$payload->gotoUrl` is the Url for Zain cash Website
 
 so if there are no error we redirect
 
-```
+```php
 return redirect()->away($payload->gotoUrl);
 ```
 
@@ -84,7 +83,7 @@ https://example.com/redirect?token=XXXXXXXXXXXXXX
 
 so we check using
 
-```
+```php
 $token = $request->input('token');
 if (isset($token)) {
     $zaincash = new ZainCash();
@@ -94,7 +93,7 @@ if (isset($token)) {
 
 we check for
 
-```
+```php
 $result->status == 'success' // or failed
 ```
 
