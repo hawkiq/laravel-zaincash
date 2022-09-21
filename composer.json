@@ -17,5 +17,12 @@
             "email": "info@osama.app"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+          "providers": [
+            "Hawkiq\\LaravelZaincash"
+          ]
+        }
+      }
 }
