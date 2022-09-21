@@ -3,6 +3,7 @@
 namespace Hawkiq\LaravelZaincash\Services;
 
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 class ZainCash
 {
@@ -38,7 +39,7 @@ class ZainCash
             'gotoUrl' => $this->createUrl($parsedResponse->id),
             'transactionStatus' => $parsedResponse->status
         ];
-        return json_decode (json_encode ($payload), FALSE);
+        return json_decode(json_encode($payload), FALSE);
     }
 
     private function validate()
@@ -113,5 +114,11 @@ class ZainCash
     {
         $apiUrl = config('zaincash.live', 'false') == 'false' ? Local::rUrl() : Live::rUrl();
         return  $apiUrl . $transactionID;
+    }
+
+    public function checkToken($token)
+    {
+        $result = JWT::decode($token, new Key(config('zaincash.secret'), 'HS256'));
+        return json_encode($result);
     }
 }
