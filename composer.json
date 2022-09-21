@@ -1,0 +1,21 @@
+{
+    "name": "hawkiq/laravel-zaincash",
+    "description": "Laravel package to use in Laravel helps you to make dealing with Zain Cash API easier",
+    "type": "library",
+    "require": {
+        "firebase/php-jwt": "^6.3"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Hawkiq\\LaravelZaincash\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "hawkiq",
+            "email": "info@osama.app"
+        }
+    ],
+    "minimum-stability": "stable"
+}
