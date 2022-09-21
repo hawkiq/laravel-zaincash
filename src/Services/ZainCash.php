@@ -20,10 +20,13 @@ class ZainCash
 
     public function request($amount, $service_type, $order_id)
     {
+
+
         $this->amount = $amount;
         $this->serviceType = $service_type;
         $this->orderId = $order_id;
-        if ($this->validate()['error'] == 'true') {
+
+        if ($this->validate()->error == 'true') {
             return $this->validate();
         }
         $token = $this->sign($this->organizeData());
@@ -42,18 +45,27 @@ class ZainCash
         return json_decode(json_encode($payload), FALSE);
     }
 
+    private function validateMsisdn()
+    {
+        return preg_match('/^[0-9]{13}+$/', config('zaincash.msisdn'));
+    }
+
     private function validate()
     {
+        if (!$this->validateMsisdn()) {
+            return $this->prepareOutput(["error" => 'true', "msg" => "Phone number in Config is Invalid"]);
+        }
+
         if ($this->amount <= 999 || empty($this->amount)) {
-            return ["error" => 'true', "msg" => "Amount must Be Larger than 1000 IQD"];
+            return $this->prepareOutput(["error" => 'true', "msg" => "Amount must Be Larger than 1000 IQD"]);
         }
         if ($this->serviceType == null || empty($this->serviceType)) {
-            return ["error" => 'true', "msg" => "You must Specify Service Type ex : Shirt"];
+            return $this->prepareOutput(["error" => 'true', "msg" => "You must Specify Service Type ex : Shirt"]);
         }
         if ($this->orderId == null || empty($this->orderId)) {
-            return ["error" => 'true', "msg" => "Must specify Order ID which act as recipe ID ex : 20222009"];
+            return $this->prepareOutput(["error" => 'true', "msg" => "Must specify Order ID which act as recipe ID ex : 20222009"]);
         }
-        return ["error" => 'false', "msg" => "OK"];
+        return $this->prepareOutput(["error" => 'false', "msg" => "OK"]);
     }
 
     private function organizeData()
@@ -119,6 +131,11 @@ class ZainCash
     public function checkToken($token)
     {
         $result = JWT::decode($token, new Key(config('zaincash.secret'), 'HS256'));
-        return json_encode($result);
+        return $this->prepareOutput($result);
+    }
+
+    private function prepareOutput($array)
+    {
+        return json_decode(json_encode($array), FALSE);
     }
 }
