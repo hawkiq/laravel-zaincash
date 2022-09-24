@@ -1,5 +1,14 @@
 <?php
 
+ /*
+    |--------------------------------------------------------------------------
+    | Laravel Zain Cash
+    |--------------------------------------------------------------------------
+    |
+    | Laravel package by @hawkiq
+    | any issues : https://github.com/hawkiq/laravel-zaincash
+    */
+
 namespace Hawkiq\LaravelZaincash\Services;
 
 use Firebase\JWT\JWT;
@@ -41,7 +50,8 @@ class ZainCash
             'gotoUrl' => $this->createUrl($parsedResponse->id),
             'transactionStatus' => $parsedResponse->status
         ];
-        return json_decode(json_encode($payload), FALSE);
+        $output = $this->prepareOutput($payload);
+        return $output->error != 'true' ? redirect()->away($output->gotoUrl) : $output->msg;
     }
 
     private function validateMsisdn()
@@ -74,7 +84,7 @@ class ZainCash
             'serviceType'  => $this->serviceType,
             'msisdn'  => config('zaincash.msisdn'),
             'orderId'  =>  config('zaincash.order_id') . $this->orderId,
-            'redirectUrl'  => url(config('zaincash.redirection_url')),
+            'redirectUrl'  => route('redirect'),
             'iat'  => time(),
             'exp'  => time() + 60 * 60 * 4
         ];

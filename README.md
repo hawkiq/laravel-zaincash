@@ -1,5 +1,26 @@
 # hawkiq Laravel Zain Cash Package
 
+<p align="center">
+<a href="https://zaincash.iq" target="_blank"><img src="https://docs.zaincash.iq/assets/images/logo.png" width="100"></a>
+<a href="https://osama.app" target="_blank"><img src="https://osama.app/build/assets/logo-osama.ead70dda.png" width="75"></a>
+</p>
+
+<p align="center">
+<a href="https://packagist.org/packages/hawkiq/laravel-zaincash"><img src="https://img.shields.io/packagist/dt/hawkiq/laravel-zaincash" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/hawkiq/laravel-zaincash"><img src="https://img.shields.io/packagist/v/hawkiq/laravel-zaincash" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/hawkiq/laravel-zaincash"><img src="https://img.shields.io/packagist/l/hawkiq/laravel-zaincash" alt="License"></a>
+</p>
+
+## About hawkiq laravel zaincash
+
+ZainCash offers a simple robust payment gateway to transfer money instantly from anywhere to everywhere inside Iraq, and this package for Laravel developers since there are no official package to use in Laravel so I've decided to create one.
+
+## Requiremnt
+
+| Version | PHP    | Laravel    |
+| :---:   | :---: | :---: |
+| 1.x | 7.1 <= PHP  | 5.8 <= Laravel   |
+
 ## Installation
 
 ```
@@ -34,74 +55,68 @@ return [
 
     //Order_id, you can use it to help you in tagging transactions with your website IDs, if you have no order numbers in your website, leave it 1
     //Variable Type is STRING, MAX: 512 chars
-    'order_id' => Str::slug(env('APP_NAME')) . '_Support_', // Order will be like this "laravel_Support_xxxxxxx"
-
-    //after a successful or failed order, the user will redirect to this url
-    'redirection_url' => 'redirect', // use route name in web.php ->name('redirect')
+    'order_id' => Str::slug(env('APP_NAME')) . '_hawkiq_', // Order will be like this "laravel_hawkiq_xxxxxxx"
 ];
+
 ```
 
-in your controller init the class
+in your controller
 
 ```php
+
+//Your Controller 
 use Hawkiq\LaravelZaincash\Services\ZainCash;
 
-$zaincash = new ZainCash();
-//The total price of your order in Iraqi Dinar only like 1000 (if in dollar, multiply it by dollar-dinar exchange rate, like 1*1300=1300)
-//Please note that it MUST BE MORE THAN 1000 IQD
-$amount = 1000;
-
-//Type of service you provide, like 'Books', 'ecommerce cart', 'Hosting services', ...
-$service_type="Shirt";
-
-//Order id, you can use it to help you in tagging transactions with your website IDs, if you have no order numbers in your website, leave it 1
-//Variable Type is STRING, MAX: 512 chars
-$order_id="20222009";
-
-
-
-$payload =  $zaincash->request($amount,$service_type,$order_id);
-```
-
-now we check if there are no errors in our request then we redirect to Zain Cash Website
-
-```php
-return $payload->error != 'true' ? redirect()->away($payload->gotoUrl) : $payload->msg;
-```
-
-which `$payload->gotoUrl` is the Url for Zain cash Website
-
-so if there are no error we redirect
-
-```php
-return redirect()->away($payload->gotoUrl);
-```
-
-if the response was successful either transaction was success or failed.
-the api will add a new parameter (token) to its end like:
-https://example.com/redirect?token=XXXXXXXXXXXXXX
-
-so we check using
-
-```php
-$token = $request->input('token');
-if (isset($token)) {
+public function send()
+{
     $zaincash = new ZainCash();
-    $result =  $zaincash->checkToken($token);
+    //The total price of your order in Iraqi Dinar only like 1000 (if in dollar, multiply it by dollar-dinar exchange rate, like 1*1300=1300)
+    //Please note that it MUST BE MORE THAN 1000 IQD
+    $amount = 1000;
+
+    //Type of service you provide, like 'Books', 'ecommerce cart', 'Hosting services', ...
+    $service_type="Shirt";
+
+    //Order id, you can use it to help you in tagging transactions with your website IDs, if you have no order numbers in your website, leave it 1
+    //Variable Type is STRING, MAX: 512 chars
+    $order_id="20222009";
+
+    $payload =  $zaincash->request($amount, $service_type, $order_id);
+    return $payload;
+}
+
+```
+
+this will redirect us to Zain Cash page to enter user credentials ( MSISDN and Pin)
+
+you can use this test user
+
+| MSISDN | PIN    | OTP    |
+| :---:   | :---: | :---: |
+| 9647802999569 | 1234   | 1111   |
+
+result will be in JSON format like this 
+
+```json
+{
+   "status":"success",
+   "orderid":"laravel_hawkiq_20222009",
+   "id":"632eb6cb8726f6b4b8ea2fc3",
+   "operationid":"1006596",
+   "msisdn":"9647802999569"
 }
 ```
-
-we check for
+We check for
 
 ```php
-$result->status == 'success' // or failed
+$result->status == 'success' // success ||  failed  || pending
 ```
 
 and we can do what ever you like , insert transaction into database, send email etc..
 
 ## Security Vulnerabilities
 
-If you discover a security vulnerability within Larapsn, please send an e-mail to OsaMa via [info@osama.app](mailto:info@osama.app). All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability within hawkiq Laravel Zaincash, please send an e-mail to OsaMa via [info@osama.app](mailto:info@osama.app). All security vulnerabilities will be promptly addressed.
 
 ## Preview
 
@@ -110,6 +125,13 @@ this class used in following sites
 - [O! Software](https://osama.app).
 
 feel free to contact me if you want to add your site.
+
+
+## Todo
+
+- Add custom redirect route.
+- Add additional views for easy integration into blade.
+- Add method to check transactions details.
 
 ## License
 
