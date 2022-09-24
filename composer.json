@@ -20,12 +20,12 @@
     "minimum-stability": "stable",
     "extra": {
         "laravel": {
-          "providers": [
-            "Hawkiq\\LaravelZaincash\\ZainCashServiceProvider"
-          ],
-          "aliases": {
-            "ZainCash": "Hawkiq\\LaravelZaincash\\Facades\\ZainCashFacade"
+            "providers": [
+                "Hawkiq\\LaravelZaincash\\ZainCashServiceProvider"
+            ],
+            "aliases": {
+                "ZainCash": "Hawkiq\\LaravelZaincash\\Facades\\ZainCashFacade"
+            }
         }
-        }
-      }
+    }
 }
