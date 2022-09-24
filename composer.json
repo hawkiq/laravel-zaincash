@@ -21,8 +21,11 @@
     "extra": {
         "laravel": {
           "providers": [
-            "Hawkiq\\LaravelZaincash"
-          ]
+            "Hawkiq\\LaravelZaincash\\ZainCashServiceProvider"
+          ],
+          "aliases": {
+            "Bar": "Hawkiq\\LaravelZaincash\\Facades\\ZainCashFacade"
+        }
         }
       }
 }
