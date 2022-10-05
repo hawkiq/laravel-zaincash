@@ -19,7 +19,7 @@ ZainCash offers a simple robust payment gateway to transfer money instantly from
 
 | Version | PHP    | Laravel    |
 | :---:   | :---: | :---: |
-| 1.x | 7.1 <= PHP  | 5.8 <= Laravel   |
+| 1.x | 7.1 &lt;= PHP  | 5.8 &lt;= Laravel   |
 
 ## Installation
 
@@ -33,34 +33,34 @@ composer require hawkiq/laravel-zaincash
 php artisan vendor:publish --tag="zaincash"
 ```
 
-all config variables are well described
+setup redirect route in web.php to handle payment result and put route name in zaincash.php config file
 
 ```php
-
-return [
-    //The mobile phone number for your wallet, example format: 9647835077893. given by Zain Cash
-    'msisdn' => '9647835077893', // This is for test only its working for test enviroment
-
-    //This is used to decode and encode JWT during requests. also must be requested from ZainCash.
-    'secret' => '$2y$10$hBbAZo2GfSSvyqAyV2SaqOfYewgYpfR1O19gIh4SqyGWdmySZYPuS',// This is for test only its working for test enviroment
-
-    //You can request a Merchant ID from ZainCash's support.
-    'merchantid' => '5ffacf6612b5777c6d44266f',// This is for test only its working for test enviroment
-
-    //Test enviroment or Live server (true=live , false=test)
-    'live' => 'false',
-
-    //Language 'ar'=Arabic     'en'=english
-    'lang' => 'en',
-
-    //Order_id, you can use it to help you in tagging transactions with your website IDs, if you have no order numbers in your website, leave it 1
-    //Variable Type is STRING, MAX: 512 chars
-    'order_id' => Str::slug(env('APP_NAME')) . '_hawkiq_', // Order will be like this "laravel_hawkiq_xxxxxxx"
-];
-
+Route::get('/redirect', [App\Http\Controllers\HomeController::class, 'redirect'])->name('redirect');
 ```
 
-in your controller
+
+all config variables are well described
+
+| config | Description    | Type    | Default    |
+| :---:   | :---: | :---: | :---: |
+| msisdn |The mobile phone number for your wallet, example format: 9647835077893. given by Zain Cash  | String  | 9647835077893  |
+|   |  |  |  |
+| secret | This is used to decode and encode JWT during requests. also must be requested from ZainCash    | String    | secret found in config    |
+|   |  |  |  |
+| merchantid | You can request a Merchant ID from ZainCash's support    | String    | 5ffacf6612b5777c6d44266f    |
+|   |  |  |  |
+| live | Test enviroment or Live server (true=live , false=test)    | Bool    | false    |
+|   |  |  |  |
+| lang | setting langauge for zain cashe payment page    | String    | en    |
+|   |  |  |  |
+| order_id | you can use it to help you in tagging transactions with your website IDs    | String    | `Str::slug(env('APP_NAME')) . '_hawkiq_'`    |
+|   |  |  |  |
+| redirection_url | to handle payment after successfull First you need to Specify name for redirect route in web.php    | String    | redirect    |
+
+
+
+inside your controller
 
 ```php
 
@@ -70,7 +70,7 @@ use Hawkiq\LaravelZaincash\Services\ZainCash;
 public function send()
 {
     $zaincash = new ZainCash();
-    //The total price of your order in Iraqi Dinar only like 1000 (if in dollar, multiply it by dollar-dinar exchange rate, like 1*1300=1300)
+    //The total price of your order in Iraqi Dinar only like 1000 (if in dollar, multiply it by dollar-dinar exchange rate, like 1*1500=1500)
     //Please note that it MUST BE MORE THAN 1000 IQD
     $amount = 1000;
 
@@ -78,7 +78,6 @@ public function send()
     $service_type="Shirt";
 
     //Order id, you can use it to help you in tagging transactions with your website IDs, if you have no order numbers in your website, leave it 1
-    //Variable Type is STRING, MAX: 512 chars
     $order_id="20222009";
 
     $payload =  $zaincash->request($amount, $service_type, $order_id);
@@ -89,11 +88,28 @@ public function send()
 
 this will redirect us to Zain Cash page to enter user credentials ( MSISDN and Pin)
 
+<img src="https://i.imgur.com/r62v9CV.png"/>
+
 you can use this test user
 
 | MSISDN | PIN    | OTP    |
 | :---:   | :---: | :---: |
 | 9647802999569 | 1234   | 1111   |
+
+
+We check for status in our redirect method in controller
+
+```php
+//get token from request Url
+$token = \Request::input('token');
+    if (isset($token)) {
+        $zaincash = new ZainCash();
+        $result = $zaincash->parse($token);
+        if ($result->status == 'success'){ // success ||  failed  || pending
+            return 'Thanks for Buying';
+            // We can do what ever you like , insert transaction into database, send email etc..
+        }
+```
 
 result will be in JSON format like this 
 
@@ -106,13 +122,6 @@ result will be in JSON format like this
    "msisdn":"9647802999569"
 }
 ```
-We check for
-
-```php
-$result->status == 'success' // success ||  failed  || pending
-```
-
-and we can do what ever you like , insert transaction into database, send email etc..
 
 ## Security Vulnerabilities
 
@@ -129,10 +138,9 @@ feel free to contact me if you want to add your site.
 
 ## Todo
 
-- Add custom redirect route.
+- <s>Add custom redirect route.</s>
 - Add additional views for easy integration into blade.
-- Add method to check transactions details.
 
 ## License
 
-Larapsn is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Laravel Zaincash is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

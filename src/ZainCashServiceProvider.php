@@ -28,7 +28,6 @@ class ZainCashServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->loadRoutesFrom(__DIR__.'/routes/web.php');
         $this->publishes([
             __DIR__ . '/config/zaincash.php' =>  config_path('zaincash.php'),
         ], 'zaincash');

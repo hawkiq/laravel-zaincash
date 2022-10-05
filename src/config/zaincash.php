@@ -12,7 +12,7 @@ return [
     | The mobile phone number for your wallet, example format: 9647835077893. given by Zain Cash
     | current number is for test only its working for test enviroment
     */
-    'msisdn' => '9647835077893',
+    'msisdn' => env('ZCASH_MSISDN', '9647835077893'), 
 
     /*
     |--------------------------------------------------------------------------
@@ -22,7 +22,7 @@ return [
     | This is used to decode and encode JWT during requests. also must be requested from ZainCash.
     | current secret is for test only its working for test enviroment
     */
-    'secret' => '$2y$10$hBbAZo2GfSSvyqAyV2SaqOfYewgYpfR1O19gIh4SqyGWdmySZYPuS',
+    'secret' => env('ZCASH_SECRET', '$2y$10$hBbAZo2GfSSvyqAyV2SaqOfYewgYpfR1O19gIh4SqyGWdmySZYPuS'),
 
     /*
     |--------------------------------------------------------------------------
@@ -32,7 +32,7 @@ return [
     | You can request a Merchant ID from ZainCash's support.
     | current merchantid is for test only its working for test enviroment
     */
-    'merchantid' => '5ffacf6612b5777c6d44266f',
+    'merchantid' => env('ZCASH_MERCHANTID','5ffacf6612b5777c6d44266f'),
 
     /*
     |--------------------------------------------------------------------------
@@ -64,4 +64,15 @@ return [
     | Order will be like this "laravel_hawkiq_xxxxxxx".
     */
     'order_id' => Str::slug(env('APP_NAME')) . '_hawkiq_',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect Url
+    |--------------------------------------------------------------------------
+    |
+    | First you need to Specify name for redirect route in web.php.
+    | then put name in Zaincash config file.
+    | redirect.
+    */
+    'redirection_url' => 'redirect',
 ];
