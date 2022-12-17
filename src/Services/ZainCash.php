@@ -1,6 +1,6 @@
 <?php
 
- /*
+/*
     |--------------------------------------------------------------------------
     | Laravel Zain Cash
     |--------------------------------------------------------------------------
@@ -15,6 +15,7 @@ use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 
 class ZainCash
 {
@@ -29,9 +30,9 @@ class ZainCash
         $this->amount = $amount;
         $this->serviceType = $serviceType;
         $this->orderId = $orderId;
-
-        if ($this->validate()->error == 'true') {
-            throw new Exception($this->validate()->msg);
+        $validation = $this->validate();
+        if ($validation->error == 'true') {
+            throw new Exception($validation->msg);
         }
         $token = $this->sign($this->organizeData());
         $context = $this->preparePostToZainCash($token);
@@ -41,27 +42,36 @@ class ZainCash
         return $handledData->error != 'true' ? redirect()->away($handledData->gotoUrl) : $handledData->msg;
     }
 
-    private function validateMsisdn()
-    {
-        return preg_match('/^[0-9]{13}+$/', config('zaincash.msisdn'));
-    }
-
     private function validate()
     {
-        if (!$this->validateMsisdn()) {
-            return $this->prepareOutput(["error" => 'true', "msg" => "Msisdn Phone number in Config is Invalid"]);
+        $validator = Validator::make([
+            'msisdn' => config('zaincash.msisdn'),
+            'amount' => $this->amount,
+            'serviceType' => $this->serviceType,
+            'orderId' => $this->orderId,
+        ], [
+            'msisdn' => ['required', 'regex:/^[0-9]{13}+$/'],
+            'amount' => ['required', 'numeric', 'min:1000'],
+            'serviceType' => ['required'],
+            'orderId' => ['required', 'string', 'max:512'],
+        ],[
+            'msisdn.regex*'=>'Msisdn Phone number in Config is Invalid',
+            'amount.min*'=>'Amount must Be Larger than 1000 IQD',
+            'serviceType.required'=>'You must Specify Service Type ex : Shirt',
+            'orderId.required'=>'Must specify Order ID which act as recipe ID ex : 20222009',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->prepareOutput([
+                "error" => 'true',
+                "msg" => $validator->errors()->first(),
+            ]);
         }
 
-        if ($this->amount <= 999 || !isset($this->amount)) {
-            return $this->prepareOutput(["error" => 'true', "msg" => "Amount must Be Larger than 1000 IQD"]);
-        }
-        if ($this->serviceType == null || !isset($this->serviceType)) {
-            return $this->prepareOutput(["error" => 'true', "msg" => "You must Specify Service Type ex : Shirt"]);
-        }
-        if ($this->orderId == null || !isset($this->orderId)) {
-            return $this->prepareOutput(["error" => 'true', "msg" => "Must specify Order ID which act as recipe ID ex : 20222009"]);
-        }
-        return $this->prepareOutput(["error" => 'false', "msg" => "OK"]);
+        return $this->prepareOutput([
+            "error" => 'false',
+            "msg" => "OK",
+        ]);
     }
 
     private function organizeData()
@@ -95,14 +105,16 @@ class ZainCash
         ];
     }
 
-    private function sendRequest($context)
+    private function sendRequest(array $context)
     {
         try {
+            $apiUrl = config('zaincash.live', 'false') === 'false' ? Local::tUrl() : Live::tUrl();
             $response = Http::asForm()
-            ->post(config('zaincash.live', 'false') == 'false' ? Local::tUrl() : Live::tUrl(),$context);
+                ->post($apiUrl, $context);
+
             return $response;
-        } catch (\Throwable $th) {
-            throw $th->getMessage();
+        } catch (Exception $exception) {
+            throw $exception->getMessage();
         }
     }
 
@@ -126,13 +138,15 @@ class ZainCash
 
     private function createUrl(string $transactionID)
     {
-        $apiUrl = config('zaincash.live', 'false') == 'false' ? Local::rUrl() : Live::rUrl();
+        $apiUrl = config('zaincash.live', 'false') === 'false' ? Local::rUrl() : Live::rUrl();
         return  $apiUrl . $transactionID;
     }
 
-    public function parse($token)
+    public function parse(string $token)
     {
-        $result = JWT::decode($token, new Key(config('zaincash.secret'), 'HS256'));
+        $key = new Key(config('zaincash.secret'), 'HS256');
+        $result = JWT::decode($token, $key);
+
         return $this->prepareOutput($result);
     }
 
