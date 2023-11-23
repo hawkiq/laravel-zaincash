@@ -108,7 +108,7 @@ class ZainCash
     private function sendRequest(array $context)
     {
         try {
-            $apiUrl = config('zaincash.live', 'false') === 'false' ? Local::tUrl() : Live::tUrl();
+            $apiUrl = config('zaincash.live', false) === false ? Local::tUrl() : Live::tUrl();
             $response = Http::asForm()
                 ->post($apiUrl, $context);
 
@@ -138,7 +138,7 @@ class ZainCash
 
     private function createUrl(string $transactionID)
     {
-        $apiUrl = config('zaincash.live', 'false') === 'false' ? Local::rUrl() : Live::rUrl();
+        $apiUrl = config('zaincash.live', false) === false ? Local::rUrl() : Live::rUrl();
         return  $apiUrl . $transactionID;
     }
 
