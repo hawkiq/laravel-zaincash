@@ -42,7 +42,7 @@ return [
     | Enviroment for using Zain cash API.
     | false for test enviroment | true for live after you getting all cred. from zain cash
     */
-    'live' => 'false',
+    'live' => false,
 
     /*
     |--------------------------------------------------------------------------
