@@ -23,7 +23,19 @@ class ZainCash
     private string $serviceType; //Type of service you provide, like 'Books', 'ecommerce cart', 'Hosting services', ...
     private string $orderId; //Order id, you can use it to help you in tagging transactions with your website IDs, if you have no order numbers in your website, leave it 1
     //Variable Type is STRING, MAX: 512 chars
+    private bool $asWeb = true;
 
+    public function asWeb(bool $value = true): self
+    {
+        $this->asWeb = $value;
+        return $this;
+    }
+
+    public function asApi(): self
+    {
+        $this->asWeb = false;
+        return $this;
+    }
 
     public function request(int $amount, string $serviceType, string $orderId)
     {
@@ -39,7 +51,14 @@ class ZainCash
         $response = $this->sendRequest($context);
         $parsedResponse = $this->parseResponse($response);
         $handledData = $this->handleResponse($parsedResponse);
-        return $handledData->error != 'true' ? redirect()->away($handledData->gotoUrl) : $handledData->msg;
+        if ($this->asWeb) {
+            return $handledData->error != 'true' ? redirect()->away($handledData->gotoUrl) : $handledData->msg;
+        }
+        return [
+            'payment_url' => $handledData->gotoUrl,
+            'payload' => $handledData,
+            'status' => $handledData->transactionStatus,
+        ];
     }
 
     private function validate()

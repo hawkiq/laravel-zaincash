@@ -42,7 +42,7 @@ return [
     | Enviroment for using Zain cash API.
     | false for test enviroment | true for live after you getting all cred. from zain cash
     */
-    'live' => false,
+    'live' => env('ZCASH_LIVE', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ return [
     | setting langauge for zain cashe payment page.
     | ar for Arabic | en  for English
     */
-    'lang' => 'en',
+    'lang' => env('ZCASH_LANG', 'en'),
 
     /*
     |--------------------------------------------------------------------------
@@ -74,5 +74,5 @@ return [
     | then put name in Zaincash config file.
     | redirect.
     */
-    'redirection_url' => 'redirect',
+    'redirection_url' => env('ZCASH_CALLBACK_ROUTE', 'redirect'),
 ];

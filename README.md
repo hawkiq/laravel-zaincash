@@ -2,7 +2,7 @@
 
 <p align="center">
 <a href="https://zaincash.iq" target="_blank"><img src="https://docs.zaincash.iq/assets/images/logo.png" width="100"></a>
-<a href="https://osama.app" target="_blank"><img src="https://osama.app/build/assets/logo-osama.ead70dda.png" width="75"></a>
+<a href="https://osama.app" target="_blank"><img src="https://osama.app/assets/img/logo-osama.png" width="75"></a>
 </p>
 
 <p align="center">
@@ -58,10 +58,21 @@ all config variables are well described
 |   |  |  |  |
 | redirection_url | to handle payment after successfull First you need to Specify name for redirect route in web.php    | String    | redirect    |
 
+or you can set those parameters inside `.env` file
 
+```
+ZCASH_MSISDN=
+ZCASH_MERCHANTID=
+ZCASH_SECRET=
+ZCASH_LANG=en
+ZCASH_LIVE=false
+ZCASH_CALLBACK_ROUTE="redirect"
+
+```
 
 inside your controller
 
+Now you can use zain cash as API or web just pass the `isWeb` variable value as boolean or use `asApi` method
 ```php
 
 //Your Controller 
@@ -69,7 +80,13 @@ use Hawkiq\LaravelZaincash\Services\ZainCash;
 
 public function send()
 {
-    $zaincash = new ZainCash();
+    // Now you can use zain cash as API or web just pass the isWeb variable value as boolean or use asApi method
+    $zaincash = new ZainCash(); // for normal Web version
+    // OR
+    $zaincash = (new ZainCash())->asApi(); // for API version
+    // OR
+    $zaincash = (new ZainCash())->asWeb(false); // for API version
+
     //The total price of your order in Iraqi Dinar only like 1000 (if in dollar, multiply it by dollar-dinar exchange rate, like 1*1500=1500)
     //Please note that it MUST BE MORE THAN 1000 IQD
     $amount = 1000;
@@ -85,6 +102,7 @@ public function send()
 }
 
 ```
+if you used web version it will redirect you to payment page otherwise it will show a response with information about your payload you can use `payment_url` to redirect user inside app.
 
 this will redirect us to Zain Cash page to enter user credentials ( MSISDN and Pin)
 
@@ -97,7 +115,7 @@ you can use this test user
 | 9647802999569 | 1234   | 1111   |
 
 
-We check for status in our redirect method in controller
+We check for status in our callback method in controller
 
 ```php
 //get token from request Url
@@ -139,6 +157,7 @@ feel free to contact me if you want to add your site.
 ## Todo
 
 - <s>Add custom redirect route.</s>
+- <s>Api version.</s>
 - Add additional views for easy integration into blade.
 
 ## License
