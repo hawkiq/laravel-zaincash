@@ -2,9 +2,8 @@
 
 namespace Hawkiq\LaravelZaincash;
 
-use Illuminate\Support\ServiceProvider;
 use Hawkiq\LaravelZaincash\Services\ZainCash;
-
+use Illuminate\Support\ServiceProvider;
 
 class ZainCashServiceProvider extends ServiceProvider
 {
@@ -17,7 +16,7 @@ class ZainCashServiceProvider extends ServiceProvider
     {
         $this->app->bind('hawkiq-zaincash', function () {
 
-            return new ZainCash();
+            return new ZainCash;
         });
     }
 
@@ -29,7 +28,7 @@ class ZainCashServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/config/zaincash.php' =>  config_path('zaincash.php'),
+            __DIR__.'/config/zaincash.php' => config_path('zaincash.php'),
         ], 'zaincash');
     }
 }

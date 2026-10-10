@@ -42,7 +42,7 @@ return [
     | if you have no order numbers in your website, leave it 1.
     | Order will be like this "laravel_hawkiq_xxxxxxx".
     */
-    'order_id' => Str::slug(env('APP_NAME')) . '_hawkiq_',
+    'order_id' => Str::slug(env('APP_NAME')).'_hawkiq_',
 
     /*
     |--------------------------------------------------------------------------

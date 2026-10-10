@@ -1,2 +1,8 @@
-/vendor/
 /.history
+/node_modules
+/vendor
+/site
+.DS_Store
+.phpstan-cache
+.phpunit.cache
+composer.lock

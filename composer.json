@@ -5,10 +5,22 @@
     "require": {
         "firebase/php-jwt": "^7.2"
     },
+    "require-dev": {
+        "pestphp/pest": "*",
+        "pestphp/pest-plugin-laravel": "*",
+        "orchestra/testbench": "*",
+        "laravel/pint": "*",
+        "phpstan/phpstan": "*"
+    },
     "license": "MIT",
     "autoload": {
         "psr-4": {
             "Hawkiq\\LaravelZaincash\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Hawkiq\\LaravelZaincash\\Tests\\": "tests/"
         }
     },
     "authors": [
@@ -27,5 +39,16 @@
                 "ZainCash": "Hawkiq\\LaravelZaincash\\Facades\\ZainCashFacade"
             }
         }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "test:coverage": "php -d zend.assertions=1 -r \"if (!extension_loaded('xdebug') && !extension_loaded('pcov')) { fwrite(STDERR, 'No code coverage driver is available.\\n'); exit(1); }\" && pest --coverage",
+        "format": "pint",
+        "analyse": "phpstan analyse --memory-limit=1G"
     }
 }

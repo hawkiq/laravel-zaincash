@@ -1,0 +1,20 @@
+# Exclude test files
+/tests export-ignore
+phpunit.xml export-ignore
+phpunit.xml.dist export-ignore
+Pest.php export-ignore
+
+# Exclude CI/CD and GitHub specific files
+/.github export-ignore
+
+# Exclude static analysis and dev tools
+phpstan.neon export-ignore
+phpstan.neon.dist export-ignore
+pint.json export-ignore
+.php-cs-fixer.php export-ignore
+.php-cs-fixer.dist.php export-ignore
+
+# Exclude editor and Git configs
+.editorconfig export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
