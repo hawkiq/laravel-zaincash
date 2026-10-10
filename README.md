@@ -19,7 +19,7 @@ ZainCash provides a robust payment gateway to transfer money instantly inside Ir
 
 ## Installation
 
-Require the package via Composer[cite: 8]:
+Require the package via Composer:
 
 ```bash
 composer require hawkiq/laravel-zaincash
@@ -176,7 +176,7 @@ $response =$zainCash->partialReverse('a801492a-f3be-477f-97ba-086adeec1726', 200
 
 ## Security Vulnerabilities
 
-If you discover a security vulnerability within hawkiq Laravel Zaincash, please send an e-mail to OsaMa via [info@osama.app](https://www.google.com/search?q=mailto%3Ainfo%40osama.app). All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability within hawkiq Laravel Zaincash, please send an e-mail to OsaMa via info@osama.app . All security vulnerabilities will be promptly addressed.
 
 ## License
 
