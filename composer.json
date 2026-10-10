@@ -3,7 +3,7 @@
     "description": "Laravel package to use in Laravel helps you to make dealing with Zain Cash API easier",
     "type": "library",
     "require": {
-        "firebase/php-jwt": "^6.3"
+        "firebase/php-jwt": "^7.2"
     },
     "license": "MIT",
     "autoload": {

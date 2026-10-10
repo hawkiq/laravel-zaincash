@@ -12,17 +12,17 @@
 namespace Hawkiq\LaravelZaincash\Services;
 
 use Exception;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Validator;
 
 class ZainCash
 {
-    private int $amount; //Please note that it MUST BE MORE THAN 1000 IQD
-    private string $serviceType; //Type of service you provide, like 'Books', 'ecommerce cart', 'Hosting services', ...
-    private string $orderId; //Order id, you can use it to help you in tagging transactions with your website IDs, if you have no order numbers in your website, leave it 1
-    //Variable Type is STRING, MAX: 512 chars
+    private int $amount;
+    private string $serviceType;
+    private string $orderId;
+    private ?string $customerPhone = null;
     private bool $asWeb = true;
 
     public function asWeb(bool $value = true): self
@@ -37,140 +37,186 @@ class ZainCash
         return $this;
     }
 
-    public function request(int $amount, string $serviceType, string $orderId)
+    public function setCustomerPhone(string $phone): self
+    {
+        $this->customerPhone = $phone;
+        return $this;
+    }
+
+    private function getBaseUrl(): string
+    {
+        return config('zaincash.live', false) === false
+            ? "https://pg-api-uat.zaincash.iq"
+            : "https://pg-api.zaincash.iq";
+    }
+
+    private function getAccessToken(): string
+    {
+        $response = Http::asForm()->post($this->getBaseUrl() . "/oauth2/token", [
+            "grant_type"    => "client_credentials",
+            "client_id"     => config('zaincash.client_id'),
+            "client_secret" => config('zaincash.client_secret'),
+            "scope"         => "payment:read payment:write reverse:write reverse:read disbursement:read disbursement:write"
+        ]);
+
+        if ($response->failed() || !isset($response->json()['access_token'])) {
+            throw new Exception("Failed to obtain ZainCash OAuth2 token: " . $response->body());
+        }
+
+        return $response->json()['access_token'];
+    }
+
+    /**
+     * Initialize a payment transaction.
+     */
+    public function request(int $amount, string $serviceType, string $orderId, ?string $customerPhone = null)
     {
         $this->amount = $amount;
         $this->serviceType = $serviceType;
         $this->orderId = $orderId;
-        $validation = $this->validate();
-        if ($validation->error == 'true') {
-            throw new Exception($validation->msg);
+
+        $phone = $customerPhone ?? $this->customerPhone;
+
+        if ($this->amount < 1000) {
+            throw new Exception("Amount must be larger than 1000 IQD");
         }
-        $token = $this->sign($this->organizeData());
-        $context = $this->preparePostToZainCash($token);
-        $response = $this->sendRequest($context);
-        $parsedResponse = $this->parseResponse($response);
-        $handledData = $this->handleResponse($parsedResponse);
+
+        $token = $this->getAccessToken();
+
+        $payload = [
+            "language"            => config('zaincash.lang', 'en'),
+            "externalReferenceId" => (string) Str::uuid(),
+            "orderId"             => config('zaincash.order_id') . $this->orderId,
+            "amount"              => [
+                "value"    => (string) $this->amount,
+                "currency" => "IQD"
+            ],
+            "serviceType"         => $this->serviceType,
+            "redirectUrls"        => [
+                "successUrl" => route(config('zaincash.redirection_url')),
+                "failureUrl" => route(config('zaincash.redirection_url'))
+            ]
+        ];
+
+        if ($phone) {
+            $payload["customer"] = [
+                "phone" => $phone
+            ];
+        }
+
+        $response = Http::withToken($token)
+            ->post($this->getBaseUrl() . "/api/v2/payment-gateway/transaction/init", $payload);
+
+        if ($response->failed()) {
+            throw new Exception("ZainCash Init Error: " . $response->body());
+        }
+
+        $data = $response->json();
+
         if ($this->asWeb) {
-            return $handledData->error != 'true' ? redirect()->away($handledData->gotoUrl) : $handledData->msg;
-        }
-        return [
-            'payment_url' => $handledData->gotoUrl,
-            'payload' => $handledData,
-            'status' => $handledData->transactionStatus,
-        ];
-    }
-
-    private function validate()
-    {
-        $validator = Validator::make([
-            'msisdn' => config('zaincash.msisdn'),
-            'amount' => $this->amount,
-            'serviceType' => $this->serviceType,
-            'orderId' => $this->orderId,
-        ], [
-            'msisdn' => ['required', 'regex:/^[0-9]{13}+$/'],
-            'amount' => ['required', 'numeric', 'min:1000'],
-            'serviceType' => ['required'],
-            'orderId' => ['required', 'string', 'max:512'],
-        ],[
-            'msisdn.regex*'=>'Msisdn Phone number in Config is Invalid',
-            'amount.min*'=>'Amount must Be Larger than 1000 IQD',
-            'serviceType.required'=>'You must Specify Service Type ex : Shirt',
-            'orderId.required'=>'Must specify Order ID which act as recipe ID ex : 20222009',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->prepareOutput([
-                "error" => 'true',
-                "msg" => $validator->errors()->first(),
-            ]);
+            return redirect()->away($data['redirectUrl']);
         }
 
-        return $this->prepareOutput([
-            "error" => 'false',
-            "msg" => "OK",
-        ]);
-    }
-
-    private function organizeData()
-    {
         return [
-            'amount'  => $this->amount,
-            'serviceType'  => $this->serviceType,
-            'msisdn'  => config('zaincash.msisdn'),
-            'orderId'  =>  config('zaincash.order_id') . $this->orderId,
-            'redirectUrl'  => route(config('zaincash.redirection_url')),
-            'iat'  => time(),
-            'exp'  => time() + 60 * 60 * 4
+            'payment_url' => $data['redirectUrl'],
+            'payload'     => $data,
+            'status'      => $data['status'] ?? 'PENDING',
         ];
     }
 
-    private function sign(array $data)
-    {
-        return JWT::encode(
-            $data,
-            config('zaincash.secret'),
-            'HS256'
-        );
-    }
-
-    private function preparePostToZainCash($token)
-    {
-        return [
-            'token' => urlencode($token),
-            'merchantId' => config('zaincash.merchantid'),
-            'lang' => config('zaincash.lang'),
-        ];
-    }
-
-    private function sendRequest(array $context)
+    /**
+     * Verify and decode the incoming callback JWT token from ZainCash.
+     */
+    public function parse(string $token): array
     {
         try {
-            $apiUrl = config('zaincash.live', false) === false ? Local::tUrl() : Live::tUrl();
-            $response = Http::asForm()
-                ->post($apiUrl, $context);
+            $key = new Key(config('zaincash.client_secret'), 'HS256');
+            $decoded = JWT::decode($token, $key);
 
-            return $response;
-        } catch (Exception $exception) {
-            throw $exception->getMessage();
+            $data = $decoded->data ?? null;
+
+            return [
+                'error'               => false,
+                'eventType'           => $decoded->eventType ?? null,
+                'status'              => $data->currentStatus ?? 'UNKNOWN',
+                'transactionId'       => $data->transactionId ?? null,
+                'merchantReferenceId' => $data->merchantReferenceId ?? null,
+                'orderId'             => $data->orderId ?? null,
+                'amount'              => $data->amount->value ?? null,
+                'feeValue'            => $data->amount->feeValue ?? 0,
+                'currency'            => $data->amount->currency ?? 'IQD',
+                'customerMsisdn'      => $data->customerMsisdn ?? null,
+                'payload'             => $decoded
+            ];
+        } catch (Exception $e) {
+            return [
+                'error'   => true,
+                'message' => 'JWT Verification Failed: ' . $e->getMessage()
+            ];
         }
     }
 
-    private function parseResponse($response)
+    /**
+     * Retrieve transaction status and details (Critical for fallback reconciliation).
+     */
+    public function inquiry(string $transactionId)
     {
-        return json_decode($response);
-    }
+        $token = $this->getAccessToken();
 
-    private function handleResponse($parsedResponse)
-    {
-        if (!isset($parsedResponse->id)) {
-            throw new Exception($parsedResponse->err->msg);
+        $response = Http::withToken($token)
+            ->get($this->getBaseUrl() . "/api/v2/payment-gateway/transaction/inquiry/{$transactionId}");
+
+        if ($response->failed()) {
+            throw new Exception("ZainCash Inquiry Error: " . $response->body());
         }
-        return $this->prepareOutput([
-            'error' => 'false',
-            'payload' => $parsedResponse,
-            'gotoUrl' => $this->createUrl($parsedResponse->id),
-            'transactionStatus' => $parsedResponse->status
-        ]);
+
+        return $response->json();
     }
 
-    private function createUrl(string $transactionID)
+    /**
+     * Full Refund (Reverse) Support.
+     */
+    public function fullReverse(string $transactionId, ?string $reason = null)
     {
-        $apiUrl = config('zaincash.live', false) === false ? Local::rUrl() : Live::rUrl();
-        return  $apiUrl . $transactionID;
+        $token = $this->getAccessToken();
+        $payload = ["transactionId" => $transactionId];
+
+        if ($reason) {
+            $payload["reason"] = substr(trim($reason), 0, 44); // Max 44 chars restriction
+        }
+
+        $response = Http::withToken($token)
+            ->post($this->getBaseUrl() . "/api/v2/payment-gateway/transaction/reverse", $payload);
+
+        if ($response->failed()) {
+            throw new Exception("ZainCash Full Reverse Error: " . $response->body());
+        }
+
+        return $response->json();
     }
 
-    public function parse(string $token)
+    /**
+     * Partial Refund Support.
+     */
+    public function partialReverse(string $transactionId, int $amount, ?string $reason = null)
     {
-        $key = new Key(config('zaincash.secret'), 'HS256');
-        $result = JWT::decode($token, $key);
+        $token = $this->getAccessToken();
+        $payload = [
+            "transactionId" => $transactionId,
+            "amount"        => $amount
+        ];
 
-        return $this->prepareOutput($result);
-    }
+        if ($reason) {
+            $payload["reason"] = substr(trim($reason), 0, 44);
+        }
 
-    private function prepareOutput($array)
-    {
-        return json_decode(json_encode($array), FALSE);
+        $response = Http::withToken($token)
+            ->post($this->getBaseUrl() . "/api/v2/payment-gateway/transaction/partial-reverse", $payload);
+
+        if ($response->failed()) {
+            throw new Exception("ZainCash Partial Reverse Error: " . $response->body());
+        }
+
+        return $response->json();
     }
 }
