@@ -19,7 +19,7 @@ class InitializePayment
         $payload = [
             'language' => config('zaincash.lang', 'en'),
             'externalReferenceId' => (string) Str::uuid(),
-            'orderId' => config('zaincash.order_id') . $orderId,
+            'orderId' => config('zaincash.order_id').$orderId,
             'amount' => [
                 'value' => (string) $amount,
                 'currency' => 'IQD',
@@ -38,10 +38,10 @@ class InitializePayment
         }
 
         $response = Http::withToken($token)
-            ->post(AuthenticateZainCash::getBaseUrl() . '/api/v2/payment-gateway/transaction/init', $payload);
+            ->post(AuthenticateZainCash::getBaseUrl().'/api/v2/payment-gateway/transaction/init', $payload);
 
         if ($response->failed()) {
-            throw new Exception('ZainCash Init Error: ' . $response->body());
+            throw new Exception('ZainCash Init Error: '.$response->body());
         }
 
         $data = $response->json();

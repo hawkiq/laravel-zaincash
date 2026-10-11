@@ -32,7 +32,7 @@ class ParseCallback
         } catch (Exception $e) {
             return [
                 'error' => true,
-                'message' => 'JWT Verification Failed: ' . $e->getMessage(),
+                'message' => 'JWT Verification Failed: '.$e->getMessage(),
             ];
         }
     }

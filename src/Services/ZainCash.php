@@ -3,37 +3,42 @@
 namespace Hawkiq\LaravelZaincash\Services;
 
 use Hawkiq\LaravelZaincash\Actions\FullReverseTransaction;
-use Hawkiq\LaravelZaincash\Actions\InquireTransaction;
 use Hawkiq\LaravelZaincash\Actions\InitializePayment;
+use Hawkiq\LaravelZaincash\Actions\InquireTransaction;
 use Hawkiq\LaravelZaincash\Actions\ParseCallback;
 use Hawkiq\LaravelZaincash\Actions\PartialReverseTransaction;
 
 class ZainCash
 {
     private ?string $customerPhone = null;
+
     private bool $asWeb = true;
 
     public function asWeb(bool $value = true): self
     {
         $this->asWeb = $value;
+
         return $this;
     }
 
     public function asApi(): self
     {
         $this->asWeb = false;
+
         return $this;
     }
 
     public function setCustomerPhone(string $phone): self
     {
         $this->customerPhone = $phone;
+
         return $this;
     }
 
     public function request(int $amount, string $serviceType, string $orderId, ?string $customerPhone = null)
     {
         $phone = $customerPhone ?? $this->customerPhone;
+
         return (new InitializePayment)->handle($amount, $serviceType, $orderId, $phone, $this->asWeb);
     }
 

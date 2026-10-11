@@ -20,10 +20,10 @@ class PartialReverseTransaction
         }
 
         $response = Http::withToken($token)
-            ->post(AuthenticateZainCash::getBaseUrl() . '/api/v2/payment-gateway/transaction/partial-reverse', $payload);
+            ->post(AuthenticateZainCash::getBaseUrl().'/api/v2/payment-gateway/transaction/partial-reverse', $payload);
 
         if ($response->failed()) {
-            throw new Exception('ZainCash Partial Reverse Error: ' . $response->body());
+            throw new Exception('ZainCash Partial Reverse Error: '.$response->body());
         }
 
         return $response->json();

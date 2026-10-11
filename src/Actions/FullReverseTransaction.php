@@ -17,10 +17,10 @@ class FullReverseTransaction
         }
 
         $response = Http::withToken($token)
-            ->post(AuthenticateZainCash::getBaseUrl() . '/api/v2/payment-gateway/transaction/reverse', $payload);
+            ->post(AuthenticateZainCash::getBaseUrl().'/api/v2/payment-gateway/transaction/reverse', $payload);
 
         if ($response->failed()) {
-            throw new Exception('ZainCash Full Reverse Error: ' . $response->body());
+            throw new Exception('ZainCash Full Reverse Error: '.$response->body());
         }
 
         return $response->json();

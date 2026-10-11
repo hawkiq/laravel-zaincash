@@ -11,10 +11,10 @@ class InquireTransaction
     {
         $token = AuthenticateZainCash::getToken();
         $response = Http::withToken($token)
-            ->get(AuthenticateZainCash::getBaseUrl() . "/api/v2/payment-gateway/transaction/inquiry/{$transactionId}");
+            ->get(AuthenticateZainCash::getBaseUrl()."/api/v2/payment-gateway/transaction/inquiry/{$transactionId}");
 
         if ($response->failed()) {
-            throw new Exception('ZainCash Inquiry Error: ' . $response->body());
+            throw new Exception('ZainCash Inquiry Error: '.$response->body());
         }
 
         return $response->json();

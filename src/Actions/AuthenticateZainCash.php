@@ -16,7 +16,7 @@ class AuthenticateZainCash
 
     public static function getToken(): string
     {
-        $response = Http::asForm()->post(self::getBaseUrl() . '/oauth2/token', [
+        $response = Http::asForm()->post(self::getBaseUrl().'/oauth2/token', [
             'grant_type' => 'client_credentials',
             'client_id' => config('zaincash.client_id'),
             'client_secret' => config('zaincash.client_secret'),
@@ -24,7 +24,7 @@ class AuthenticateZainCash
         ]);
 
         if ($response->failed() || ! isset($response->json()['access_token'])) {
-            throw new Exception('Failed to obtain ZainCash OAuth2 token: ' . $response->body());
+            throw new Exception('Failed to obtain ZainCash OAuth2 token: '.$response->body());
         }
 
         return $response->json()['access_token'];
