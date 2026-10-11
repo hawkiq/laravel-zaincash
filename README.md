@@ -9,6 +9,7 @@
 <a href="https://packagist.org/packages/hawkiq/laravel-zaincash"><img src="https://img.shields.io/packagist/dt/hawkiq/laravel-zaincash" alt="Total Downloads"></a>
 <a href="https://packagist.org/packages/hawkiq/laravel-zaincash"><img src="https://img.shields.io/packagist/v/hawkiq/laravel-zaincash" alt="Latest Stable Version"></a>
 <a href="https://packagist.org/packages/hawkiq/laravel-zaincash"><img src="https://img.shields.io/packagist/l/hawkiq/laravel-zaincash" alt="License"></a>
+<a href="https://plumbphp.dev/hawkiq/laravel-zaincash"><img src="https://plumbphp.dev/badges/hawkiq/laravel-zaincash/composite.svg" alt="Plumb score"></a>
 </p>
 
 ## About
@@ -23,7 +24,6 @@ Require the package via Composer:
 
 ```bash
 composer require hawkiq/laravel-zaincash
-
 ```
 
 ## Configuration
@@ -32,7 +32,6 @@ Publish the configuration file:
 
 ```bash
 php artisan vendor:publish --tag="zaincash"
-
 ```
 
 ### Environment Variables (`.env`)
@@ -43,9 +42,9 @@ Add your ZainCash v2 client credentials to your `.env` file:
 ZCASH_CLIENT_ID=your_client_id_here
 ZCASH_CLIENT_SECRET=your_client_secret_here
 ZCASH_LIVE=false
+ZCASH_LIVE_URL=api_url_provided_by_zain_cash
 ZCASH_LANG=en
 ZCASH_CALLBACK_ROUTE=payment.callback
-
 ```
 
 ### Configuration Options (`config/zaincash.php`)
@@ -55,8 +54,9 @@ ZCASH_CALLBACK_ROUTE=payment.callback
 | `client_id` | OAuth2 Client ID provided during ZainCash v2 onboarding | `string` | `''` |
 | `client_secret` | OAuth2 Client Secret (also used as the signature key for callbacks) | `string` | `''` |
 | `live` | Environment toggle (`true` for production, `false` for UAT test)| `bool` | `false` |
+| `live_url` | Live API url provided by ZainCash when approve your request| `string` | `https://pg-api.zaincash.iq` |
 | `lang` | Language for the payment gateway page (`en` or `ar`)| `string` | `en` |
-| `order_id` | Prefix used to tag transactions with your system order IDs| `string` | `Str::slug(env('APP_NAME')) . '_'` |
+| `order_id` | Prefix used to tag transactions with your system order IDs| `string` | `hawkiq_zaincash_` |
 | `redirection_url` | Named route name to handle the payment callback response| String | `payment.callback` |
 
 ---
@@ -152,7 +152,6 @@ The v2 package includes built-in methods for tracking and refunding payments:
 ```php
 $zainCash = new ZainCash();
 $details =$zainCash->inquiry('a801492a-f3be-477f-97ba-086adeec1726');
-
 ```
 
 #### Full Refund (Reverse)
@@ -160,7 +159,6 @@ $details =$zainCash->inquiry('a801492a-f3be-477f-97ba-086adeec1726');
 ```php
 $zainCash = new ZainCash();
 $response =$zainCash->fullReverse('a801492a-f3be-477f-97ba-086adeec1726', 'Customer cancellation');
-
 ```
 
 #### Partial Refund
@@ -169,7 +167,6 @@ $response =$zainCash->fullReverse('a801492a-f3be-477f-97ba-086adeec1726', 'Custo
 $zainCash = new ZainCash();
 // Refund 2000 IQD from the original transaction
 $response =$zainCash->partialReverse('a801492a-f3be-477f-97ba-086adeec1726', 2000, 'Partial item return');
-
 ```
 
 ---

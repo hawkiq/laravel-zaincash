@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Str;
-
 return [
     /*
     |--------------------------------------------------------------------------
@@ -22,6 +20,15 @@ return [
     | false for test enviroment | true for live after you getting all cred. from zain cash
     */
     'live' => env('ZCASH_LIVE', false),
+    /*
+    |--------------------------------------------------------------------------
+    | Live API url provided by ZainCash when approved
+    |--------------------------------------------------------------------------
+    |
+    | Enviroment for using Zain cash API.
+    | false for test enviroment | true for live after you getting all cred. from zain cash
+    */
+    'live_url' => env('ZCASH_LIVE_URL', 'https://pg-api.zaincash.iq'),
 
     /*
     |--------------------------------------------------------------------------
@@ -39,10 +46,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | Order_id, you can use it to help you in tagging transactions with your website IDs.
-    | if you have no order numbers in your website, leave it 1.
-    | Order will be like this "laravel_hawkiq_xxxxxxx".
+    | if you have no order numbers in your website, leave it empty.
+    | Order will be like this "hawkiq_zaincash_xxxxxxx".
     */
-    'order_id' => Str::slug(env('APP_NAME')).'_hawkiq_',
+    'order_id' => 'hawkiq_zaincash_',
 
     /*
     |--------------------------------------------------------------------------
